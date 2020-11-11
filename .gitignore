@@ -2,8 +2,9 @@
 # Created by https://www.gitignore.io/api/osx,linux,python,windows,pycharm,visualstudiocode
 
 # splunk-aws-cloudwatch-streaming-metrics-processor
-.aws-sam/
-samconfig.yaml
+.aws-sam
+.idea
+samconfig.toml
 
 ### Linux ###
 *~
