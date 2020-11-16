@@ -1,10 +1,10 @@
-from unittest import TestCase
+import unittest
 from main import app
 
 
-class Test(TestCase):
+class Test(unittest.TestCase):
 	def test_lambda_handler(self):
-		event = {
+		self.event = {
 			"invocationId": "214e762e-a57f-48c7-9251-337e60f10dfd",
 			"deliveryStreamArn": "arn:aws:firehose:us-east-1:134183635603:deliverystream/firehose-to-splunk",
 			"region": "us-west-2",
@@ -17,5 +17,5 @@ class Test(TestCase):
 			]
 		}
 
-		ret = app.lambda_handler(event, "")
+		ret = app.lambda_handler(self.event, "")
 		assert ret['records'][0]['result'] == "Ok"
