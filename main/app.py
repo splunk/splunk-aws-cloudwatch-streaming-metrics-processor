@@ -14,10 +14,9 @@ def lambda_handler(event, context):
 		record_data = record['data']
 		base64_decoded = base64.b64decode(record_data)
 		metric_data = read_delimited(base64_decoded, ResourceMetrics)
-		metric_data_dict = convert_protobuf_dict(metric_data)
 		metric_encoded_bytes = base64.b64encode(
 			bytearray(
-				json.dumps(metric_data_dict['instrumentationLibraryMetrics'][0]['metrics']),
+				json.dumps(metric_data[0]['instrumentationLibraryMetrics'][0]['metrics']),
 				'utf-8'))
 		metric_encoded_string = str(metric_encoded_bytes, 'utf-8')
 		event_map = copy.deepcopy(record)
@@ -33,17 +32,19 @@ def convert_protobuf_dict(metric):
 
 
 def read_delimited(data, metric_type):
-	if len(data) == 0:
-		return
-	(msg_length, hdr_length) = _DecodeVarint(data, 0)
-	# read message as a byte string
-	proto_str = data[hdr_length:msg_length + hdr_length]
+	result = []
+	start = 0
+	while len(data) > 0 and start < len(data):
+		(msg_length, hdr_length) = _DecodeVarint(data[start:], 0)
+		# read message as a byte string
+		proto_str = data[start + hdr_length:start + msg_length + hdr_length]
+		# EOF
+		if len(proto_str) == 0:
+			return
+		start = start + msg_length + hdr_length
+		# de-serialize the bytes into a protobuf message
+		msg = metric_type()
+		msg.ParseFromString(proto_str)
+		result.append(convert_protobuf_dict(msg))
 
-	# EOF
-	if len(proto_str) == 0:
-		return
-
-	# de-serialize the bytes into a protobuf message
-	msg = metric_type()
-	msg.ParseFromString(proto_str)
-	return msg
+	return result
