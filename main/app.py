@@ -5,7 +5,7 @@ import json
 from google.protobuf.internal.decoder import _DecodeVarint
 from google.protobuf.json_format import MessageToDict
 
-from opentelemetry.proto.metrics.v1.metrics_pb2 import ResourceMetrics
+from opentelemetry.proto.collector.metrics.v1.metrics_service_pb2 import ExportMetricsServiceRequest;
 
 
 def lambda_handler(event, context):
@@ -13,10 +13,11 @@ def lambda_handler(event, context):
 	for record in event['records']:
 		record_data = record['data']
 		base64_decoded = base64.b64decode(record_data)
-		metric_data = read_delimited(base64_decoded, ResourceMetrics)
+		metric_data = read_delimited(base64_decoded, ExportMetricsServiceRequest)
 		metric_encoded_bytes = base64.b64encode(
 			bytearray(
-				json.dumps(metric_data[0]['instrumentationLibraryMetrics'][0]['metrics']),
+				# please note that in future AWS may send multiple ResourceMetrics in one request
+				json.dumps(metric_data[0]),
 				'utf-8'))
 		metric_encoded_string = str(metric_encoded_bytes, 'utf-8')
 		event_map = copy.deepcopy(record)
