@@ -41,22 +41,25 @@ def lambda_handler(event, context):
 
 
 def transform_json_metric_event(metrics):
+    '''
+    Convert streaming metrics event format similar to output AWS TA metric event format
+    (The conversion helps the AWS app to interpret metrics and help populating existing dashboards)
+    '''
     events = []
-    event = {}
-    for i in metrics:
-        metric = ast.literal_eval(i)
+    for metric_string in metrics:
+        metric = ast.literal_eval(metric_string)
         metric_event = copy.deepcopy(metric)
         # reformat metric_dimensions
         extracted_dims = {
-            'extracted_dims': ','.join([
+            'dims': ','.join([
                 '{}=[{}]'.format(key, value)
-                for key, value in metric["dimensions"].items()
+                for key, value in metric_event["dimensions"].items()
             ])
         }
-        metric_event["metric_dimensions"] = extracted_dims["extracted_dims"]
+        metric_event["metric_dimensions"] = extracted_dims["dims"]
         metric_event.pop("dimensions")
         # reformat metric values
-        for k, v in metric["value"].items():
+        for k, v in metric_event["value"].items():
             if k == "count":
                 metric_event["SampleCount"] = v
             if k == "sum":
@@ -70,10 +73,11 @@ def transform_json_metric_event(metrics):
 
         metric_event.pop("value")
         # build splunk event
-        event["event"] = metric_event
-        event["source"] = '{}:{}'.format(metric["region"], metric["namespace"])
-        event["sourcetype"] = "aws:cloudwatch"
-        event["time"] = metric["timestamp"]
+        # Modify sourcetype in token for aws:cloudwatch:metric if required
+        event = {"event": metric_event,
+                 "source": '{}:{}'.format(metric_event["region"], metric_event["namespace"]),
+                 "sourcetype": "aws:cloudwatch",
+                 "time": metric_event["timestamp"]}
         events.append(event)
 
     return events
