@@ -68,9 +68,8 @@ def transform_json_metric_event(metrics):
                 metric_event["Maximum"] = v
             if k == "min":
                 metric_event["Minimum"] = v
-            if k == "avg":
-                metric_event["Average"] = v
 
+        metric_event["Average"] = metric_event["Sum"]/metric_event["SampleCount"]
         metric_event.pop("value")
         # build splunk event
         # Modify sourcetype in token for aws:cloudwatch:metric if required
