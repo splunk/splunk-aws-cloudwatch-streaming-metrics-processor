@@ -20,8 +20,8 @@ Resources:
   SplunkAWSCloudWatchStreamingMetricsProcessor:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: main/
-      Handler: app.lambda_handler
+      CodeUri: SplunkAWSCloudWatchStreamingMetricsProcessor
+      Handler: lambda_function.lambda_handler
       Runtime: python3.8
       Description: Data transformation function for Cloudwatch streams real-time metric JSON data to Splunk via Firehose
       MemorySize: 128

@@ -1,5 +1,5 @@
 import unittest
-from main import app
+from SplunkAWSCloudWatchStreamingMetricsProcessor import lambda_function
 
 
 class Test(unittest.TestCase):
@@ -16,7 +16,7 @@ class Test(unittest.TestCase):
 			]
 		}
 
-		ret = app.lambda_handler(self.event, "")
+		ret = lambda_function.lambda_handler(self.event, "")
 		assert ret['records'][0]['result'] == "Ok"
 
 
