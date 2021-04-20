@@ -2,13 +2,20 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
   splunk-aws-cloudwatch-streaming-metrics-processor
-
-  Sample SAM Template for splunk-aws-cloudwatch-streaming-metrics-processor
-
+  Data transformation function for Cloudwatch streams real-time metric JSON data to Splunk via Firehose
+Metadata:
+  AWS::ServerlessRepo::Application:
+    Name: splunk-aws-cloudwatch-streaming-metrics-processor
+    Description: Data transformation function for Cloudwatch streams real-time metric JSON data to Splunk via Firehose
+    Author: Splunk
+    SpdxLicenseId: MIT
+    LicenseUrl: LICENSE
+    ReadmeUrl: README.md
+    SemanticVersion: 0.0.1
+    SourceCodeUrl: https://github.com/splunk/splunk-aws-cloudwatch-streaming-metrics-processor
 Globals:
   Function:
     Timeout: 60
-
 Resources:
   SplunkAWSCloudWatchStreamingMetricsProcessor:
     Type: AWS::Serverless::Function
@@ -16,3 +23,14 @@ Resources:
       CodeUri: main/
       Handler: app.lambda_handler
       Runtime: python3.8
+      Description: Data transformation function for Cloudwatch streams real-time metric JSON data to Splunk via Firehose
+      MemorySize: 128
+      Timeout: 60
+      Environment:
+        Variables:
+          SPLUNK_CLOUDWATCH_SOURCETYPE:
+            Ref: SplunkCloudwatchSourcetype
+Parameters:
+  SplunkCloudwatchSourcetype:
+    Type: String
+    Description: Splunk sourcetype for aws cloudwatch events
