@@ -50,16 +50,52 @@ def transform_json_metric_event(metrics):
 	for metric_string in metrics:
 		metric = ast.literal_eval(metric_string)
 		metric_event = copy.deepcopy(metric)
+		
+		
 		# reformat metric_dimensions
 		extracted_dims = {
-			'dims': ','.join([
-				'{}=[{}]'.format(key, value)
+			'dim': ','.join([
+				'{}:{}'.format(key, value)
 				for key, value in metric_event["dimensions"].items()
 			])
 		}
-		metric_event["metric_dimensions"] = extracted_dims["dims"]
+		
+		# reformat values
+		extracted_values = {
+			'val': ','.join([
+				'{}:{}'.format(key, value)
+				for key, value in metric_event["value"].items()
+			])
+		}
+
+		
+		#pull dimensions and values up to top level of metric_event
+		for key, value in metric_event["dimensions"].items():
+			ky = key
+			metric_event[ky] = value
+		
+		for key, value in metric_event["value"].items():
+			ky = key
+			metric_event[ky] = value
+		
+		
 		metric_event.pop("dimensions")
+		
+		
+		# adding namespace to metric.name to avoid the odd behavior with the values being appended to metric_name
+		metric_namespace = str(metric_event["namespace"])
+		
+		metric_name = str(metric_event["metric_name"])
+		
+		name_key = metric_namespace + "." + metric_name
+		
+		del metric_event["metric_name"]
+		
+		#metric_event["metric.name"] = str(name_key)
+		
 		# reformat metric values
+		# can't really figure out why this part is needed or why the keys are appended to the metric_name item
+		# if I try to change this it breaks the flow, but why?
 		for k, v in metric_event["value"].items():
 			if k == "count":
 				metric_event["SampleCount"] = v
@@ -69,9 +105,14 @@ def transform_json_metric_event(metrics):
 				metric_event["Maximum"] = v
 			if k == "min":
 				metric_event["Minimum"] = v
-
-		metric_event["Average"] = metric_event["Sum"] / metric_event["SampleCount"]
-		metric_event.pop("value")
+		
+		metric_event["avg"] = metric_event["sum"] / metric_event["count"]
+		
+		del metric_event["value"]
+		
+		metric_event["metric_display_name"] = str(name_key)
+		#del metric_event["metric_name"]
+		
 		# build splunk event
 		# Modify sourcetype in token for aws:cloudwatch:metric if required
 		if os.environ['SPLUNK_CLOUDWATCH_SOURCETYPE']:
