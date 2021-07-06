@@ -91,7 +91,7 @@ def transform_json_metric_event(metrics):
 		
 		del metric_event["metric_name"]
 		
-		#metric_event["metric.name"] = str(name_key)
+		metric_event["metric_name"] = str(name_key)
 		
 		# reformat metric values
 		# can't really figure out why this part is needed or why the keys are appended to the metric_name item
@@ -107,6 +107,8 @@ def transform_json_metric_event(metrics):
 				metric_event["Minimum"] = v
 		
 		metric_event["avg"] = metric_event["sum"] / metric_event["count"]
+		
+		metric_event["Average"] = metric_event["Sum"] / metric_event["SampleCount"]
 		
 		del metric_event["value"]
 		
