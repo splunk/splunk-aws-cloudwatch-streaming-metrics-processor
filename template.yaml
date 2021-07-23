@@ -29,7 +29,7 @@ Resources:
       Environment:
         Variables:
           METRICS_OUTPUT_FORMAT:
-            Ref:MetricsOutputFormat
+            Ref: MetricsOutputFormat
           SPLUNK_CLOUDWATCH_SOURCETYPE:
             Ref: SplunkCloudwatchSourcetype
 Parameters:
