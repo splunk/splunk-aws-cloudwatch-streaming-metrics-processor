@@ -11,7 +11,7 @@ Metadata:
     SpdxLicenseId: MIT
     LicenseUrl: LICENSE
     ReadmeUrl: README.md
-    SemanticVersion: 0.0.5
+    SemanticVersion: 1.0.0
     SourceCodeUrl: https://github.com/splunk/splunk-aws-cloudwatch-streaming-metrics-processor
 Globals:
   Function:
