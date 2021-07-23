@@ -28,9 +28,14 @@ Resources:
       Timeout: 60
       Environment:
         Variables:
+          METRICS_OUTPUT_FORMAT:
+            Ref:MetricsOutputFormat
           SPLUNK_CLOUDWATCH_SOURCETYPE:
             Ref: SplunkCloudwatchSourcetype
 Parameters:
   SplunkCloudwatchSourcetype:
     Type: String
     Description: Splunk sourcetype for aws cloudwatch events
+  MetricsOutputFormat:
+    Type: String
+    Description: Streams output format (json or otel)

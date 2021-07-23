@@ -3,6 +3,7 @@ import copy
 import json
 import ast
 import os
+import sys
 
 from google.protobuf.internal.decoder import _DecodeVarint
 from google.protobuf.json_format import MessageToDict
@@ -15,15 +16,14 @@ def lambda_handler(event, context):
 	for record in event['records']:
 		record_data = record['data']
 		base64_decoded = base64.b64decode(record_data)
-		# To distinguish OTEL vs JSON format check initial protobuf bytes
-		if base64_decoded.startswith(b'\xfb'):
+		if os.environ["METRICS_OUTPUT_FORMAT"].lower() == "otel":
 			metric_data = read_delimited(base64_decoded, ExportMetricsServiceRequest)
 			metric_encoded_bytes = base64.b64encode(
 				bytearray(
 					# please note that in future AWS may send multiple ResourceMetrics in one request
 					json.dumps(metric_data[0]),
 					'utf-8'))
-		else:
+		elif os.environ["METRICS_OUTPUT_FORMAT"].lower() == "json":
 			decoded_metrics = base64_decoded.decode("utf-8").splitlines()
 			transformed_metric_data = transform_json_metric_event(decoded_metrics)
 			metric_encoded_bytes = base64.b64encode(
@@ -31,6 +31,9 @@ def lambda_handler(event, context):
 					# please note that in future AWS may send multiple ResourceMetrics in one request
 					json.dumps(transformed_metric_data),
 					'utf-8'))
+		else:
+			print("Invalid METRICS_OUTPUT_FORMAT value. Set to either json or otel")
+			sys.exit(1)
 
 		metric_encoded_string = str(metric_encoded_bytes, 'utf-8')
 		event_map = copy.deepcopy(record)
