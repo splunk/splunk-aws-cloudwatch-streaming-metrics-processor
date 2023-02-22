@@ -4,6 +4,7 @@ import json
 import ast
 import os
 import sys
+import gzip 
 
 from google.protobuf.internal.decoder import _DecodeVarint
 from google.protobuf.json_format import MessageToDict
@@ -15,7 +16,7 @@ def lambda_handler(event, context):
 	metrics = []
 	for record in event['records']:
 		record_data = record['data']
-		base64_decoded = base64.b64decode(record_data)
+		base64_decoded = base64.b64decode(gzip.decompress(record_data))
 		if os.environ["METRICS_OUTPUT_FORMAT"].lower() == "otel":
 			metric_data = read_delimited(base64_decoded, ExportMetricsServiceRequest)
 			metric_encoded_bytes = base64.b64encode(
