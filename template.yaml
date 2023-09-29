@@ -39,3 +39,9 @@ Parameters:
   MetricsOutputFormat:
     Type: String
     Description: Streams output format (json or otel)
+Outputs:
+  SplunkAWSCloudWatchStreamingMetricsProcessorFunctionArn:
+    Description: The ARN of the SplunkAWSCloudWatchStreamingMetricsProcessor function
+    Value: !GetAtt SplunkAWSCloudWatchStreamingMetricsProcessor.Arn
+    Export:
+      Name: SplunkAWSCloudWatchStreamingMetricsProcessorFunctionArn
