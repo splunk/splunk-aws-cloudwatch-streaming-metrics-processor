@@ -16,6 +16,7 @@ def lambda_handler(event, context):
 	for record in event['records']:
 		record_data = record['data']
 		base64_decoded = base64.b64decode(record_data)
+		metric_array = []
 		if os.environ["METRICS_OUTPUT_FORMAT"].lower() == "otel":
 			metric_data = read_delimited(base64_decoded, ExportMetricsServiceRequest)
 			metric_encoded_bytes = base64.b64encode(
@@ -26,20 +27,26 @@ def lambda_handler(event, context):
 		elif os.environ["METRICS_OUTPUT_FORMAT"].lower() == "json":
 			decoded_metrics = base64_decoded.decode("utf-8").splitlines()
 			transformed_metric_data = transform_json_metric_event(decoded_metrics)
-			metric_encoded_bytes = base64.b64encode(
-				bytearray(
-					# please note that in future AWS may send multiple ResourceMetrics in one request
-					json.dumps(transformed_metric_data),
-					'utf-8'))
+			#Firehose now ingests multiple records, thats the reason for the additional loop
+			for transformed_metric in transformed_metric_data:
+				metric_encoded_bytes = base64.b64encode(
+						bytearray(
+						# please note that in future AWS may send multiple ResourceMetrics in one request
+						json.dumps(transformed_metric),
+						'utf-8'))
+				metric_array.append(metric_encoded_bytes)
+				
 		else:
 			print("Invalid METRICS_OUTPUT_FORMAT value. Set to either json or otel")
 			sys.exit(1)
-
-		metric_encoded_string = str(metric_encoded_bytes, 'utf-8')
-		event_map = copy.deepcopy(record)
-		event_map['data'] = metric_encoded_string
-		event_map['result'] = 'Ok'
-		metrics.append(event_map)
+		for idx,metric_event in enumerate(metric_array):
+			metric_encoded_string = str(metric_event, 'utf-8')
+			event_map = copy.deepcopy(record)
+			recordId = int(event_map['recordId']) + idx
+			event_map['recordId'] = str(recordId)
+			event_map['data'] = metric_encoded_string
+			event_map['result'] = 'Ok'
+			metrics.append(event_map)
 
 	return {'records': metrics}
 
@@ -87,7 +94,6 @@ def transform_json_metric_event(metrics):
 		         "sourcetype": sourcetype,
 		         "time": metric_event["timestamp"]}
 		events.append(event)
-
 	return events
 
 
